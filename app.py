@@ -2,6 +2,7 @@ import random
 from flask import Flask, render_template, request, flash, redirect, url_for, send_from_directory, after_this_request
 from flask import send_from_directory, jsonify
 import os
+import glob
 from flask import session
 import logging
 import json
@@ -995,3 +996,4 @@ if __name__ == "__main__":
     if not os.path.exists(app.config['DOCKING_RESULTS_DIR']):
         os.makedirs(app.config['DOCKING_RESULTS_DIR'])
     app.run(port=5000, use_reloader=False)
+
