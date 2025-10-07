@@ -325,7 +325,7 @@ def index():
                 plt.legend()
 
                 # Save the plot as an image file
-                plot_file_path = os.path.join(app.config['GENERATED_FILES_DIR'], cluster_plot_filename)  # Assuming your static folder is set up correctly
+                plot_file_path = os.path.join('/content/generated_files', cluster_plot_filename)  # Assuming your static folder is set up correctly
                 plt.savefig(plot_file_path)
                 plt.close()
                 # Perform virtual screening
@@ -357,7 +357,7 @@ def index():
                                            final_clusters_filename=final_clusters_filename,
                                            final_compounds_filename=final_compounds_filename,
                                            compounds_table=compounds_table, clusters_table=clusters_table,
-                                           plot_file_path=plot_file_path[len('static/'):],
+                                           plot_file_path=cluster_plot_filename,
                                            generated_file_path=generated_file_path,
                                            final_clusters_file_path=final_clusters_file_path)  # Added clusters_table
                     # Add return statement for GET request
@@ -371,6 +371,9 @@ def allow_files(filename):
     ALLOWED_EXTENSIONS = {'csv'}
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 # Ensure the static file serving route can handle the new library cluster plot image
+@app.route('/static_uploaded/<filename>')
+def static_uploaded(filename):
+    return send_from_directory('/content/generated_files', filename)
 @app.route('/images/<filename>')
 def uploaded_file(filename):
     return send_from_directory('/content/generated_files', filename)
