@@ -304,11 +304,10 @@ p, ul {
                 <div>
                     {{ clusters_table|safe }}
                 </div>
-
                 <!-- Cluster Plot Image Section -->
                 {% if plot_file_path %}
-                    <img src="{{ url_for('static', filename=plot_file_path) }}" alt="Cluster Plot">
-                    <a href="{{ url_for('uploaded_file', filename=plot_file_path) }}" download="{{ plot_file_path }}">
+                    <img src="{{ url_for('static_uploaded', filename=plot_file_path) }}" alt="Cluster Plot">
+                    <a href="{{ url_for('static_uploaded', filename=plot_file_path) }}" download="{{ plot_file_path }}">
                         <button>Download Plot</button>
                     </a>
                 {% endif %}
@@ -751,3 +750,4 @@ function fetchAndCreateChart(job_id) {
 </script>
 </body>
 </html>
+
