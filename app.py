@@ -78,21 +78,6 @@ from pyngrok import conf, ngrok
 conf.get_default().auth_token = "33hIpXxhdjf5sVXivIwoZAqBoXW_2nwsk1GjCU7FBEipumxuN"
 
 os.makedirs("static", exist_ok=True)
-os.makedirs("/content/VirtuDockDL/static", exist_ok=True)
-os.makedirs("/content/VirtuDockDL/templates", exist_ok=True)
-
-origem = "/content/VirtuDockDL/upload.html"
-destino = "/content/VirtuDockDL/templates/upload.html"
-
-# Cria a pasta de destino se não existir
-os.makedirs("/content/VirtuDockDL/templates", exist_ok=True)
-
-# Só move se o arquivo ainda não estiver no destino
-if not os.path.exists(destino):
-    shutil.move(origem, destino)
-    print("Arquivo movido com sucesso.")
-else:
-    print("Arquivo já está no destino. Nada foi feito.")
 
 # Cria um túnel para a porta 5000
 public_url = ngrok.connect(5000)
@@ -997,4 +982,5 @@ if __name__ == "__main__":
         os.makedirs(app.config['UPLOAD_FOLDER'])
     if not os.path.exists(app.config['DOCKING_RESULTS_DIR']):
         os.makedirs(app.config['DOCKING_RESULTS_DIR'])
+
     app.run(port=5000, use_reloader=False)
