@@ -211,6 +211,7 @@ def index():
         if 'file' in request.files:
             file = request.files['file']
             if file.filename != '':
+
                 filename = f'Molecules_{timestamp}.csv'
                 uploaded_file_path = os.path.join(app.config['UPLOADED_FILES_DIR'], filename)
                 file.save(uploaded_file_path)
@@ -332,7 +333,18 @@ def index():
                     flash('File "final_clusters.csv" does not exist. Please generate the clusters first.', 'warning')
                 else:
                     # Read CSV files into pandas dataframes
-                    compounds_df = pd.read_csv(os.path.join(app.config['GENERATED_FILES_DIR'], 'final_compounds.csv'))
+                    # Diretório onde os arquivos estão
+                    generated_dir = '/content/generated_files'
+                    
+                    # Encontra todos os arquivos que começam com 'final_compounds_'
+                    files = glob.glob(os.path.join(generated_dir, 'final_compounds_*.csv'))
+                    
+                    # Pega o mais recente (com base na data de modificação)
+                    latest_file = max(files, key=os.path.getmtime)
+
+                    # Lê o arquivo CSV mais recente
+                    compounds_df = pd.read_csv(latest_file)
+
                     clusters_df = pd.read_csv(file_path)
                     # Convert dataframes to HTML tables
                     compounds_table = compounds_df.to_html(classes='table table-striped table-bordered', index=False)
@@ -360,10 +372,10 @@ def allow_files(filename):
 # Ensure the static file serving route can handle the new library cluster plot image
 @app.route('/images/<filename>')
 def uploaded_file(filename):
-    return send_from_directory('path to/PycharmProjects/pythonProject3/generated_files', filename)
-@app.route('/download/sdf_zip')
-def download_sdf_zip():
-    return send_from_directory(app.config['GENERATED_FILES_DIR'], 'compounds_sdf.zip', as_attachment=True)
+    return send_from_directory(app.config['GENERATED_FILES_DIR'], filename)
+@app.route('/download_sdf_zip/<filename>')
+def download_sdf_zip(filename):
+    return send_from_directory(app.config['GENERATED_FILES_DIR'], filename, as_attachment=True)
 def get_compound_name_from_pubchem(smiles_string):
     # URL for the PubChem PUG-REST service
     url = f"https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/smiles/{smiles_string}/synonyms/JSON"
@@ -982,5 +994,4 @@ if __name__ == "__main__":
         os.makedirs(app.config['UPLOAD_FOLDER'])
     if not os.path.exists(app.config['DOCKING_RESULTS_DIR']):
         os.makedirs(app.config['DOCKING_RESULTS_DIR'])
-
     app.run(port=5000, use_reloader=False)
