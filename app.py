@@ -325,7 +325,7 @@ def index():
                 plt.legend()
 
                 # Save the plot as an image file
-                plot_file_path = os.path.join('static', cluster_plot_filename)  # Assuming your static folder is set up correctly
+                plot_file_path = os.path.join(app.config['GENERATED_FILES_DIR'], cluster_plot_filename)  # Assuming your static folder is set up correctly
                 plt.savefig(plot_file_path)
                 plt.close()
                 # Perform virtual screening
@@ -373,10 +373,10 @@ def allow_files(filename):
 # Ensure the static file serving route can handle the new library cluster plot image
 @app.route('/images/<filename>')
 def uploaded_file(filename):
-    return send_from_directory(app.config['GENERATED_FILES_DIR'], filename)
+    return send_from_directory('/content/generated_files', filename)
 @app.route('/download_sdf_zip/<filename>')
 def download_sdf_zip(filename):
-    return send_from_directory(app.config['GENERATED_FILES_DIR'], filename, as_attachment=True)
+    return send_from_directory('/content/generated_files', filename, as_attachment=True)
 def get_compound_name_from_pubchem(smiles_string):
     # URL for the PubChem PUG-REST service
     url = f"https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/smiles/{smiles_string}/synonyms/JSON"
