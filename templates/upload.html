@@ -416,13 +416,13 @@ p, ul {
     {% if download_links %}
     <div class="results">
         <h2>Results:</h2>
-        <div class="plots">
-            <h3>Generated Plots</h3>
+        <h3>Generated Plots</h3>
+        <div class="plots d-flex justify-content-around">
             {% if download_links.ramachandran_plot %}
-               <img src="{{ download_links.ramachandran_plot }}" alt="Ramachandran Plot" class="img-fluid">
+               <img src="{{ download_links.ramachandran_plot }}" alt="Ramachandran Plot" class="img-fluid w-50">
             {% endif %}
             {% if download_links.sasa_per_residue_plot %}
-               <img src="{{ download_links.sasa_per_residue_plot }}" alt="SASA Plot" class="img-fluid">
+               <img src="{{ download_links.sasa_per_residue_plot }}" alt="SASA Plot" class="img-fluid w-50">
             {% endif %}
         </div>
         <div class="downloads">
@@ -750,6 +750,7 @@ function fetchAndCreateChart(job_id) {
 </script>
 </body>
 </html>
+
 
 
 
