@@ -307,8 +307,8 @@ p, ul {
                 <!-- Cluster Plot Image Section -->
                 {% if plot_file_path %}
                     <img src="{{ url_for('static_uploaded', filename=plot_file_path) }}" alt="Cluster Plot">
-                    <a href="{{ url_for('static_uploaded', filename=plot_file_path) }}" download="{{ plot_file_path }}">
-                        <button>Download Plot</button>
+   			    <a href="{{ url_for('static_uploaded', filename=plot_file_path) }}" download="{{ plot_file_path }}">
+                                <button>Download Plot</button>
                     </a>
                 {% endif %}
 
@@ -420,9 +420,11 @@ p, ul {
             <h3>Generated Plots</h3>
             {% if download_links.ramachandran_plot %}
                <img src="{{ download_links.ramachandran_plot }}" alt="Ramachandran Plot" class="img-fluid">
+              <a href="{{ download_links.ramachandran_plot }}" class="btn btn-success" download>Download Ramachandran Plot</a>
             {% endif %}
             {% if download_links.sasa_per_residue_plot %}
                <img src="{{ download_links.sasa_per_residue_plot }}" alt="SASA Plot" class="img-fluid">
+              <a href="{{ download_links.sasa_per_residue_plot }}" class="btn btn-success" download>Download SASA Plot</a>
             {% endif %}
         </div>
         <div class="downloads">
@@ -750,4 +752,5 @@ function fetchAndCreateChart(job_id) {
 </script>
 </body>
 </html>
+
 
