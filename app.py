@@ -59,13 +59,13 @@ from gnn_utils import collate, mol_to_graph, MoleculeDataset
 import torch
 from torch_geometric.data import Data
 from Bio.PDB import PDBParser, CaPPBuilder
-# import mdtraj as md
+import mdtraj as md
 import openmm
 from openmm.app import *  # This will import the necessary 'app' module classes and functions
 from openmm import *
 from openmm.unit import *
 from openmm.app import PDBFile, Modeller, ForceField
-# from pdbfixer import PDBFixer
+from pdbfixer import PDBFixer
 from simtk.openmm.app import PDBFile
 import matplotlib.pyplot as plt
 from io import BytesIO
@@ -712,8 +712,8 @@ def protein_refinement():
                     'stripped_protein': url_for('uploa', filename=result_files['stripped_pdb']),
                     'fixed_protein': url_for('uploa', filename=result_files['fixed_pdb']),
                     'minimized_protein': url_for('uploa', filename=result_files['minimized_pdb']),
-                    'ramachandran_plot': url_for('static', filename=os.path.basename(result_files['ramachandran_plot'])),
-                    'sasa_per_residue_plot': url_for('static', filename=os.path.basename(result_files['sasa_per_residue_plot']))
+                    'ramachandran_plot': url_for('files_protein', filename=os.path.basename(result_files['ramachandran_plot'])),
+                    'sasa_per_residue_plot': url_for('files_protein', filename=os.path.basename(result_files['sasa_per_residue_plot']))
                 }
 
                 return render_template('upload.html', download_links=download_links, random=int(time.time()), active_tab='protein_refinement')
@@ -725,9 +725,14 @@ def protein_refinement():
 @app.route('/files/<filename>')
 def uploa(filename):
     # This sets the directory to your app's root directory
-    directory = current_app.root_path
+    directory = '/static'
     return send_from_directory(directory, filename)
 
+@app.route('/files_protein/<filename>')
+def files_protein(filename):
+    # This sets the directory to your app's root directory
+    directory = '/content'
+    return send_from_directory(directory, filename)
 
 def allowed_fil(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in {'zip', 'pdb'}
