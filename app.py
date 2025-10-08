@@ -570,7 +570,6 @@ def generate_molecules():
 
     return send_file(file_path, as_attachment=True, download_name=filename)
 
-
 @app.route('/downloads/<filename>')
 def downloads(filename):
     directory = app.config['GENERATED_FILES_DIR']
@@ -675,8 +674,8 @@ def perform_protein_refinement(protein_file_path):
         'stripped_pdb': stripped_pdb_filename,
         'fixed_pdb': fixed_pdb_filename,
         'minimized_pdb': minimized_pdb_filename,
-        'ramachandran_plot': f'static/{ramachandran_plot_filename}',
-        'sasa_per_residue_plot': f'static/{sasa_per_residue_plot_filename}'
+        'ramachandran_graph': ramachandran_plot_filename,
+        'sasa_per_residue_graph': sasa_per_residue_plot_filename
     }
 
 
@@ -712,8 +711,8 @@ def protein_refinement():
                     'stripped_protein': url_for('uploa', filename=result_files['stripped_pdb']),
                     'fixed_protein': url_for('uploa', filename=result_files['fixed_pdb']),
                     'minimized_protein': url_for('uploa', filename=result_files['minimized_pdb']),
-                    'ramachandran_plot': url_for('files_protein', filename=os.path.basename(result_files['ramachandran_plot'])),
-                    'sasa_per_residue_plot': url_for('files_protein', filename=os.path.basename(result_files['sasa_per_residue_plot']))
+                    'ramachandran_plot': url_for('files_protein', filename=result_files['ramachandran_graph']),
+                    'sasa_per_residue_plot': url_for('files_protein', filename=result_files['sasa_per_residue_graph'])
                 }
 
                 return render_template('upload.html', download_links=download_links, random=int(time.time()), active_tab='protein_refinement')
@@ -722,16 +721,17 @@ def protein_refinement():
         flash('An error occurred during processing.', 'error')
         return redirect(request.url)
     return render_template('upload.html', active_tab='protein_refinement')
+
 @app.route('/files/<filename>')
 def uploa(filename):
     # This sets the directory to your app's root directory
-    directory = '/static'
+    directory = '/content'
     return send_from_directory(directory, filename)
 
 @app.route('/files_protein/<filename>')
 def files_protein(filename):
     # This sets the directory to your app's root directory
-    directory = '/content'
+    directory = '/content/static'
     return send_from_directory(directory, filename)
 
 def allowed_fil(filename):
@@ -1004,4 +1004,6 @@ if __name__ == "__main__":
     if not os.path.exists(app.config['DOCKING_RESULTS_DIR']):
         os.makedirs(app.config['DOCKING_RESULTS_DIR'])
     app.run(port=5000, use_reloader=False)
+
+
 
