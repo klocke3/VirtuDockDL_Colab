@@ -917,7 +917,6 @@ def docking():
     ligand_directory_path = os.path.join(app.config['GENERATED_FILES_DIR'], 'refined_ligands')
     results_directory_path = os.path.join(app.config['DOCKING_RESULTS_DIR'])
 
-    run_docking(protein_pdbqt_path, ligand_directory_path, results_directory_path)
     return jsonify({'message': 'Docking completed!'})
 
 @app.route('/list_docking_results')
