@@ -420,11 +420,9 @@ p, ul {
             <h3>Generated Plots</h3>
             {% if download_links.ramachandran_plot %}
                <img src="{{ download_links.ramachandran_plot }}" alt="Ramachandran Plot" class="img-fluid">
-              <a href="{{ download_links.ramachandran_plot }}" class="btn btn-success" download>Download Ramachandran Plot</a>
             {% endif %}
             {% if download_links.sasa_per_residue_plot %}
                <img src="{{ download_links.sasa_per_residue_plot }}" alt="SASA Plot" class="img-fluid">
-              <a href="{{ download_links.sasa_per_residue_plot }}" class="btn btn-success" download>Download SASA Plot</a>
             {% endif %}
         </div>
         <div class="downloads">
@@ -752,5 +750,6 @@ function fetchAndCreateChart(job_id) {
 </script>
 </body>
 </html>
+
 
 
