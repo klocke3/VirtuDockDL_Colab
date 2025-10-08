@@ -702,9 +702,6 @@ def protein_refinement():
                 protein_file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
                 file.save(protein_file_path)
                 #flash('Protein file uploaded successfully.', 'success')
-                perform_protein_refinement(protein_file_path)
-                file2 = 'ramachandran_plot.png'
-                file3 = 'sasa_per_residue_plot.png'
                 result_files = perform_protein_refinement(protein_file_path)
                 # Generate download links and visualization data for the protein refinement results
                 download_links = {
@@ -1004,6 +1001,5 @@ if __name__ == "__main__":
     if not os.path.exists(app.config['DOCKING_RESULTS_DIR']):
         os.makedirs(app.config['DOCKING_RESULTS_DIR'])
     app.run(port=5000, use_reloader=False)
-
 
 
