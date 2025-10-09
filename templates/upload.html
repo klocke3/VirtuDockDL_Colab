@@ -731,28 +731,42 @@ function fetchAndCreateChart(job_id) {
         setTimeout(() => fetchAndCreateChart(job_id), 5000); // Retry after delay
     });
 }
-$(document).ready(function() {
-    $('#docking-form').on('submit', function(e) {
-        e.preventDefault(); // Prevent the default form submission
-        var formData = new FormData(this);
-        $.ajax({
-            type: 'POST',
-            url: '/upload',
-            data: formData,
-            contentType: false,
-            processData: false,
-            success: function(response) {
-                $('#results-info').text('Docking started for job ' + response.job_id + ', please wait...');
-                // Update the download button with the job_id and make it visible
-                $('#downloadAllComplexesButton').attr('href', `/download_complexes/${response.job_id}`).show();
-                fetchAndDisplayResults(response.job_id); // Call the function with the job_id
-            },
-            error: function() {
-                $('#results-info').text('An error occurred during file upload.');
-            }
+
+$('#docking-form').on('submit', function(e) {
+  e.preventDefault();
+  const formData = new FormData(this);
+  const progressDiv = $('#results-info');
+  progressDiv.html('<p>⏳ Iniciando processamento...</p>');
+
+  fetch('/upload', {
+    method: 'POST',
+    body: formData
+  }).then(response => {
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+
+    function read() {
+      reader.read().then(({ done, value }) => {
+        if (done) {
+          progressDiv.append('<p>🏁 Finalizado!</p>');
+        return;
+          return;
+        }
+        const chunk = decoder.decode(value, { stream: true });
+        const lines = chunk.split('\n').filter(Boolean);
+        lines.forEach(line => {
+          progressDiv.append(`<p>${line}</p>`);
         });
-    });
+        read();
+      });
+    }
+
+    read();
+  }).catch(err => {
+    progressDiv.html(`<p style="color:red;">❌ Erro: ${err.message}</p>`);
+  });
 });
+
 function fetchAndDisplayResults(job_id) {
     // Fetch results using the job_id
     fetch(`/analyze_results/${job_id}`) // This endpoint should return CSV or some data to indicate readiness
@@ -787,6 +801,7 @@ function fetchAndCreateChart(job_id) {
 </script>
 </body>
 </html>
+
 
 
 
