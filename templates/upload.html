@@ -437,27 +437,40 @@ p, ul {
             </div>
         </form>
     </div>
-    <!-- Results Section -->
-    {% if download_links %}
-    <div class="results">
-        <h2>Results:</h2>
-        <h3>Generated Plots</h3>
-        <div class="plots d-flex justify-content-around">
-            {% if download_links.ramachandran_plot %}
-               <img src="{{ download_links.ramachandran_plot }}" alt="Ramachandran Plot" class="img-fluid w-50">
-            {% endif %}
-            {% if download_links.sasa_per_residue_plot %}
-               <img src="{{ download_links.sasa_per_residue_plot }}" alt="SASA Plot" class="img-fluid w-50">
-            {% endif %}
+    
+<!-- Results Section -->
+{% if download_links %}
+<div class="results">
+    <h2>Results:</h2>
+    <h3>Generated Plots</h3>
+    <div class="plots d-flex justify-content-around flex-wrap">
+        {% if download_links.ramachandran_plot %}
+        <div class="text-center mb-4 w-50">
+            <img src="{{ download_links.ramachandran_plot }}" alt="Ramachandran Plot" class="img-fluid">
+            <a href="{{ download_links.ramachandran_plot }}" download>
+                <button class="btn btn-info mt-2">Download Ramachandran Plot</button>
+            </a>
         </div>
-        <div class="downloads">
-            <h3>Download Processed Files</h3>
-            <a href="{{ download_links.stripped_protein }}" class="btn btn-success" download>Download Stripped Protein</a>
-            <a href="{{ download_links.fixed_protein }}" class="btn btn-success" download>Download Fixed Protein</a>
-            <a href="{{ download_links.minimized_protein }}" class="btn btn-success" download>Download Minimized Protein</a>
+        {% endif %}
+        {% if download_links.sasa_per_residue_plot %}
+        <div class="text-center mb-4 w-50">
+            <img src="{{ download_links.sasa_per_residue_plot }}" alt="SASA Plot" class="img-fluid">
+            <a href="{{ download_links.sasa_per_residue_plot }}" download>
+                <button class="btn btn-info mt-2">Download SASA Plot</button>
+            </a>
         </div>
+        {% endif %}
     </div>
-    {% endif %}
+
+    <div class="downloads mt-4">
+        <h3>Download Processed Files</h3>
+        <a href="{{ download_links.stripped_protein }}" class="btn btn-success mb-2" download>Download Stripped Protein</a>
+        <a href="{{ download_links.fixed_protein }}" class="btn btn-success mb-2" download>Download Fixed Protein</a>
+        <a href="{{ download_links.minimized_protein }}" class="btn btn-success mb-2" download>Download Minimized Protein</a>
+    </div>
+</div>
+{% endif %}
+
 </div>
 
             <!-- End of Protein Refinement Tab Pane -->
@@ -774,6 +787,7 @@ function fetchAndCreateChart(job_id) {
 </script>
 </body>
 </html>
+
 
 
 
