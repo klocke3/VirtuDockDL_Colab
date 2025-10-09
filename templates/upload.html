@@ -51,7 +51,19 @@
             border-radius: 10px;
             background-color: #f2f2f2;
         }
+.form-section table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+    background-color: #f2f2f2;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 0 5px rgba(0,0,0,0.1);
+}
 
+.form-section th {
+    text-align: center;
+}
         .features-container {
             display: flex;
             flex-wrap: wrap;
@@ -263,54 +275,69 @@ p, ul {
                 </div>
             </div>
             <div class="tab-pane fade" id="pills-virtual-screening" role="tabpanel" aria-labelledby="pills-virtual-screening-tab">
-            <div class="container">
-               <div class="row">
-                 <div class="col-md-6">
-                <!-- Upload CSV File Section -->
-                <div class="form-section">
-                    <form method="POST" enctype="multipart/form-data">
-                        <h2 class="mb-3">Upload CSV File</h2>
-                        <div class="form-group">
-                            <label for="file" class="form-label">Select a CSV File containing data of active and inactive (decoy) molecules</label>
-                            <a href="{{ url_for('static', filename='Example1.csv') }}" download="Example1.csv">(Example)</a>
-                            <input type="file" name="file" id="file" accept=".csv" class="form-control-file" required>
-                        </div>
-                        <button type="submit" class="btn btn-primary">Upload</button>
-                    </form>
-                </div>
-<!-- Generated Molecules Section -->
-                {% if generated_molecules %}
-                    <h2 class="mb-3">Generated Molecules</h2>
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th scope="col">SMILES</th>
-                                <th scope="col">Activity</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for smiles, activity in generated_molecules %}
-                                <tr>
-                                    <td>{{ smiles }}</td>
-                                    <td>{{ activity }}</td>
-                                </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                    <a href="{{ url_for('download_molecules') }}" class="btn btn-info">Download CSV</a>
-                    {% endif %}
+            <div class="">
+               <div class="">
+                 <div class="">
 
-                <!-- Clusters Section -->
-                <div>
-                    {{ clusters_table|safe }}
-                </div>
-                <!-- Cluster Plot Image Section -->
-                {% if plot_file_path %}
-                    <img src="{{ url_for('static_uploaded', filename=plot_file_path) }}" alt="Cluster Plot">
-   			    <a href="{{ url_for('static_uploaded', filename=plot_file_path) }}" download="{{ plot_file_path }}">
-                                <button>Download Plot</button>
-                    </a>
-                {% endif %}
+<!-- Upload CSV File Section -->
+<div class="form-section">
+    <form method="POST" enctype="multipart/form-data">
+        <h2 class="mb-3">Upload CSV File</h2>
+        <div class="form-group">
+            <label for="file" class="form-label">Select a CSV File containing data of active and inactive (decoy) molecules</label>
+            <a href="{{ url_for('static', filename='Example1.csv') }}" download="Example1.csv">(Example)</a>
+            <input type="file" name="file" id="file" accept=".csv" class="form-control-file" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Upload</button>
+    </form>
+
+<!-- Generated Molecules Section -->
+{% if generated_molecules %}
+<div class="form-section">
+    <h2 class="mb-3">Generated Molecules</h2>
+    <table class="table">
+        <thead>
+            <tr>
+                <th scope="col">SMILES</th>
+                <th scope="col">Activity</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for smiles, activity in generated_molecules %}
+                <tr>
+                    <td>{{ smiles }}</td>
+                    <td>{{ activity }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <a href="{{ url_for('download_molecules') }}" class="btn btn-info">Download CSV</a>
+</div>
+{% endif %}
+
+<!-- Clusters Section -->
+{% if clusters_table %}
+    <hr class="my-4">
+
+    <p>Clusters Table</p>
+
+    <div class="mt-3">
+    {{ clusters_table|safe }}
+    </div>
+{% endif %}
+
+<!-- Cluster Plot Image Section -->
+{% if plot_file_path %}
+<div class="form-section text-center">
+    <h2 class="mb-3">Cluster Plot</h2>
+    <img src="{{ url_for('static_uploaded', filename=plot_file_path) }}" alt="Cluster Plot" class="img-fluid mb-3">
+    <a href="{{ url_for('static_uploaded', filename=plot_file_path) }}" download="{{ plot_file_path }}">
+        <button class="btn btn-secondary">Download Plot</button>
+    </a>
+</div>
+{% endif %}
+
+</div> <!-- End of Upload CSV File
 
                 <!-- Flash Messages Section -->
                 <div class="flash-messages">
@@ -327,51 +354,49 @@ p, ul {
                 </div>
             </div>
 
-            <!-- Re-screening Tab Pane -->
-            <div class="form-section">
-                 <div class="col-md-12">
-                    <h2 class="mb-3">Rescreening</h2>
-                    <form action="{{ url_for('rescreening') }}" method="post" enctype="multipart/form-data">
-                        <div class="form-group">
-                            <label for="file" class="form-label">Upload Compounds' SMILES notations </label>
-                            <a href="{{ url_for('static', filename='Example2.csv') }}" download="Example2.csv">(Example)</a>
-                            <input type="file" name="file" id="file" accept=".csv" class="form-control-file" required>
-                        </div>
-                        <button type="submit" class="btn btn-primary">Re-screen</button>
-                    </form>
-                </div>
+<!-- Re-screening Tab Pane -->
+<div class="form-section">
+    <h2 class="mb-3">Rescreening</h2>
+    <form action="{{ url_for('rescreening') }}" method="post" enctype="multipart/form-data">
+        <div class="form-group">
+            <label for="rescreen-file" class="form-label">Upload Compounds' SMILES notations</label>
+            <a href="{{ url_for('static', filename='Example2.csv') }}" download="Example2.csv">(Example)</a>
+            <input type="file" name="file" id="rescreen-file" accept=".csv" class="form-control-file" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Re-screen</button>
+    </form>
 
+    <!-- Success Message and Tables Section -->
+    {% if success %}
+        <hr class="my-4">
+        <p>Analysis successful!</p>
 
-                <!-- Success Message and Tables Section -->
-                   
-                {% if success %}
-                    <p>Analysis successful!</p>
-                    <div>
-                        {{ cluster_table|safe }}
-                    </div>
+        <div class="mt-3">
+            {{ cluster_table|safe }}
+        </div>
 
-                    <!-- Cluster Plot Section -->
-                    {% if plot_file_p %}
-                        <div class="plot">
-                    	    <img src="{{ url_for('uploaded_file', filename=plot_file_p) }}" alt="Cluster Plot">
-   			    <a href="{{ url_for('uploaded_file', filename=plot_file_p) }}" download="{{ plot_file_p }}">
-                                <button>Download Plot</button>
-                            </a>
-                        </div>
-                {% endif %}
-                <!-- SDF Zip File Download Section -->
-                {% if sdf_zip_file %}
-                    <div class="download-section">
-                        <p>Download the compounds in SDF format:</p>
-                        <a href="{{ url_for('download_sdf_zip', filename=sdf_zip_file) }}" download="{{ sdf_zip_file }}">
-                            <button class="blinking-btn">Download SDF Folder</button>
-                        </a>
-                    </div>
-                {% endif %}
+        <!-- Cluster Plot Section -->
+        {% if plot_file_p %}
+            <div class="mt-4 text-center">
+                <img src="{{ url_for('uploaded_file', filename=plot_file_p) }}" alt="Cluster Plot" class="img-fluid mb-3">
+                <a href="{{ url_for('uploaded_file', filename=plot_file_p) }}" download="{{ plot_file_p }}">
+                    <button class="btn btn-secondary">Download Plot</button>
+                </a>
+            </div>
+        {% endif %}
 
-                {% endif %}
+        <!-- SDF Zip File Download Section -->
+        {% if sdf_zip_file %}
+            <div class="mt-4">
+                <p>Download the compounds in SDF format:</p>
+                <a href="{{ url_for('download_sdf_zip', filename=sdf_zip_file) }}" download="{{ sdf_zip_file }}">
+                    <button class="btn btn-info blinking-btn">Download SDF Folder</button>
+                </a>
+            </div>
+        {% endif %}
+    {% endif %}
+</div> <!-- End of Re-screening Tab Pane -->
 
-            </div> <!-- End of Re-screening Tab Pane --> 
 <div class="form-section">
     <div class="col-md-10">
         <h2 class="mb-3">De Novo Molecule Generation</h2>
@@ -550,8 +575,7 @@ p, ul {
     </div>
 </div>
 </div>
-</div>
-</div>                  
+</div>                 
 
 <!-- JavaScript libraries -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -750,6 +774,7 @@ function fetchAndCreateChart(job_id) {
 </script>
 </body>
 </html>
+
 
 
 
