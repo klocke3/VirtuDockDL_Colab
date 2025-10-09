@@ -387,7 +387,7 @@ p, ul {
 
         <!-- SDF Zip File Download Section -->
         {% if sdf_zip_file %}
-            <div class="mt-4">
+            <div class="mt-4 text-center">
                 <p>Download the compounds in SDF format:</p>
                 <a href="{{ url_for('download_sdf_zip', filename=sdf_zip_file) }}" download="{{ sdf_zip_file }}">
                     <button class="btn btn-info blinking-btn">Download SDF Folder</button>
@@ -774,6 +774,7 @@ function fetchAndCreateChart(job_id) {
 </script>
 </body>
 </html>
+
 
 
 
