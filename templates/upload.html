@@ -732,28 +732,61 @@ function fetchAndCreateChart(job_id) {
     });
 }
 
-$(document).ready(function() {
-    $('#docking-form').on('submit', function(e) {
-        e.preventDefault(); // Prevent the default form submission
-        var formData = new FormData(this);
-        $.ajax({
-            type: 'POST',
-            url: '/upload',
-            data: formData,
-            contentType: false,
-            processData: false,
-            success: function(response) {
-                $('#results-info').text('Docking started for job ' + response.job_id + ', please wait...');
-                // Update the download button with the job_id and make it visible
-                $('#downloadAllComplexesButton').attr('href', `/download_complexes/${response.job_id}`).show();
-                fetchAndDisplayResults(response.job_id); // Call the function with the job_id
-            },
-            error: function() {
-                $('#results-info').text('An error occurred during file upload.');
-            }
-        });
+$('#docking-form').on('submit', function(e) {
+    e.preventDefault();
+
+    var formData = new FormData(this);
+    $('#results-info').text('Uploading files...');
+
+    $.ajax({
+        type: 'POST',
+        url: '/upload',
+        data: formData,
+        contentType: false,
+        processData: false,
+        success: function(response) {
+            const job_id = response.job_id;
+            $('#results-info').text("Job '" + job_id + "' uploaded! Starting docking...");
+
+            // Parâmetros de docking (você pode capturar do formulário também)
+            const dockingParams = {
+                job_id: job_id,
+                center_x: parseFloat($('#center_x').val()),
+                center_y: parseFloat($('#center_y').val()),
+                center_z: parseFloat($('#center_z').val()),
+                size_x: parseFloat($('#size_x').val()),
+                size_y: parseFloat($('#size_y').val()),
+                size_z: parseFloat($('#size_z').val()),
+                exhaustiveness: parseInt($('#exhaustiveness').val()),
+                num_modes: parseInt($('#num_modes').val()),
+                energy_range: parseInt($('#energy_range').val())
+            };
+
+            // Chamada para iniciar o docking
+            fetch('/start_docking', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(dockingParams)
+            })
+            .then(res => res.json())
+            .then(data => {
+                $('#results-info').text(data.message);
+                fetchAndDisplayResults(job_id); // opcional: iniciar análise
+            })
+            .catch(err => {
+                $('#results-info').text('Erro ao iniciar docking.');
+                console.error(err);
+            });
+        },
+        error: function() {
+            $('#results-info').text('Erro ao enviar arquivos.');
+        }
     });
 });
+
+
 function fetchAndDisplayResults(job_id) {
     // Fetch results using the job_id
     fetch(`/analyze_results/${job_id}`) // This endpoint should return CSV or some data to indicate readiness
@@ -803,6 +836,12 @@ function fetchAndCreateChart(job_id) {
 </script>
 </body>
 </html>
+
+
+
+
+
+
 
 
 
