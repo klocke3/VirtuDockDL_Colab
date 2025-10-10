@@ -774,30 +774,24 @@ def clear_workspace(workspace_path):
 
 
 from flask import Response, stream_with_context
-
-from flask import Response, stream_with_context
+from threading import Thread
 
 @app.route('/upload', methods=['POST'])
 def upload_files():
-    @stream_with_context
-    def generate():
-        print('✅ Job started!')
-        job_id = uuid.uuid4().hex
-        job_workspace = os.path.join(app.config['UPLOAD_FOLDER'], job_id)
-        job_results_dir = os.path.join(app.config['DOCKING_RESULTS_DIR'], job_id)
+    # Generate a unique job ID for this particular user's session or job
+    job_id = uuid.uuid4().hex
+    job_workspace = os.path.join(app.config['UPLOAD_FOLDER'], job_id)
+    job_results_dir = os.path.join(app.config['DOCKING_RESULTS_DIR'], job_id)
 
-        yield f"Job ID: {job_id}\n"
-        clear_workspace(job_workspace)
-        clear_workspace(job_results_dir)
+    # Create directories for the job
+    clear_workspace(job_workspace)  # Clear previous data and create new workspace
+    clear_workspace(job_results_dir)  # Clear previous results and create new results directory
 
-        protein_file = request.files.get('protein_file')
-        ligand_zip = request.files.get('ligand_zip')
+    # Save uploaded protein and ligand files
+    protein_file = request.files.get('protein_file')
+    ligand_zip = request.files.get('ligand_zip')
 
-        if not (protein_file and allowed_fil(protein_file.filename) and ligand_zip and allowed_fil(ligand_zip.filename)):
-            yield "❌ Arquivo inválido ou ausente.\n"
-            return
-
-        yield " Saving the files...\n"
+    if protein_file and allowed_fil(protein_file.filename) and ligand_zip and allowed_fil(ligand_zip.filename):
         protein_filename = secure_filename(protein_file.filename)
         ligand_zip_filename = secure_filename(ligand_zip.filename)
 
@@ -807,27 +801,22 @@ def upload_files():
         protein_file.save(protein_file_path)
         ligand_zip.save(ligand_zip_path)
 
-        yield "Extracting the ligands...\n"
+        # Unzip ligands and start conversion
         output_directory_path = os.path.join(job_workspace, 'refined_ligands')
         Path(output_directory_path).mkdir(parents=True, exist_ok=True)
 
         with zipfile.ZipFile(ligand_zip_path, 'r') as zip_ref:
             zip_ref.extractall(output_directory_path)
 
-        yield "Converting ligands to pdbqt...\n"
+        # Convert and dock
         convert_sdf_to_pdbqt(sdf_path=ligand_zip_path, output_directory=output_directory_path)
-
-        yield "Converting protein to pdbqt...\n"
         protein_pdbqt_path = protein_file_path.replace('.pdb', '.pdbqt')
         convert_protein(protein_file_path, protein_pdbqt_path)
-
-        yield "Docking...\n"
         run_docking(protein_pdbqt_path, output_directory_path, job_results_dir)
 
-        yield "Docking has been worked with success!\n"
-
-    return Response(generate(), mimetype='text/plain')
-
+        return jsonify({'job_id': job_id, 'message': 'Files uploaded, conversion started, and docking initiated!'})
+    else:
+        return jsonify({'error': 'Invalid file type or missing files.'}), 400
 
 def run_docking(protein_pdbqt, ligand_directory_path, results_directory_path):
     print("Starting the docking process...")  # Debug print
