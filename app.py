@@ -905,19 +905,19 @@ energy_range = {energy_range}
                            })
 
 
-        if docking_data:
-            df = pd.DataFrame(docking_data)
-            df_second_poses = df.groupby('file_name').nth(1).reset_index()
-            df_second_poses['final_rmsd'] = df_second_poses['rmsd_ub'] - df_second_poses['rmsd_lb']
-            df_best_poses = df_second_poses
+            if docking_data:
+                df = pd.DataFrame(docking_data)
+                df_second_poses = df.groupby('file_name').nth(1).reset_index()
+                df_second_poses['final_rmsd'] = df_second_poses['rmsd_ub'] - df_second_poses['rmsd_lb']
+                df_best_poses = df_second_poses
 
-            csv_file_path = os.path.join(job_results_dir, 'docking_results.csv')
-            df_best_poses.to_csv(csv_file_path, index=False)
-            print(df_best_poses)
-        else:
-            print("No docking data to process.")
+                csv_file_path = os.path.join(job_results_dir, 'docking_results.csv')
+                df_best_poses.to_csv(csv_file_path, index=False)
+                print(df_best_poses)
+            else:
+                print("No docking data to process.")
 
-        return jsonify({'message': f'Docking completed for job {job_id}'})
+            return jsonify({'message': f'Docking completed for job {job_id}'})
     except Exception as e:
         print(f"Erro no backend: {str(e)}")
         return jsonify({'error': str(e)}), 500
@@ -1017,6 +1017,9 @@ if __name__ == "__main__":
     if not os.path.exists(app.config['DOCKING_RESULTS_DIR']):
         os.makedirs(app.config['DOCKING_RESULTS_DIR'])
     app.run(port=5000, use_reloader=False)
+
+
+
 
 
 
