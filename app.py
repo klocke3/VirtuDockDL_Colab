@@ -894,8 +894,9 @@ energy_range = {energy_range}
         if docking_data:
             # Convert list to DataFrame
             df = pd.DataFrame(docking_data)
-            df_second_poses = df.groupby('file_name').nth(1)  # This selects the second pose for each ligand
+            df_second_poses = df.groupby('file_name').nth(1).reset_index()
             df_second_poses['final_rmsd'] = df_second_poses['rmsd_ub'] - df_second_poses['rmsd_lb']
+
             df_best_poses = df_second_poses
             print(df_best_poses)
             csv_file_path = os.path.join(results_directory_path, 'docking_results.csv')
@@ -913,24 +914,18 @@ def validate_docking_output(docked_file_path):
                 print(line.strip())  # Process line or check if it's as expected
     else:
         print(f"Docked file {docked_file_path} not found or is empty.")
-@app.route('/docking', methods=['GET'])
-def docking():
-    protein_file_path = request.args.get('protein_file_path', type=str)
-    protein_pdbqt_path = os.path.join(app.config['UPLOADED_FILES_DIR'], protein_file_path)
-    ligand_directory_path = os.path.join(app.config['GENERATED_FILES_DIR'], 'refined_ligands')
-    results_directory_path = os.path.join(app.config['DOCKING_RESULTS_DIR'])
-
-    return jsonify({'message': 'Docking completed!'})
 
 @app.route('/list_docking_results')
 def list_docking_results():
     results_files = Path(app.config['DOCKING_RESULTS_DIR']).glob('*_docked.pdbqt')
     results_list = [str(result) for result in results_files if result.is_file() and result.stat().st_size > 0]
     return jsonify(results_list)
+
 @app.route('/results/<filename>')
 def download_results(filename):
     results_directory_path = os.path.join(app.config['DOCKING_RESULTS_DIR'])
     return send_from_directory(directory=results_directory_path, filename=filename, as_attachment=True)
+
 @app.route('/analyze_results/<job_id>', methods=['GET'])
 def analyze_results(job_id):
     # Directory where the results are stored
@@ -1003,3 +998,4 @@ if __name__ == "__main__":
     if not os.path.exists(app.config['DOCKING_RESULTS_DIR']):
         os.makedirs(app.config['DOCKING_RESULTS_DIR'])
     app.run(port=5000, use_reloader=False)
+
