@@ -883,41 +883,33 @@ energy_range = {energy_range}
             finally:
                 os.remove(config_file_path)
 
-            # Initialize an empty list to collect docking data
-            docking_data = []
-            for file_name in Path(job_results_dir).glob('*_docked.pdbqt'):
-                with open(file_name, 'r') as file:
-                    lines = file.readlines()
-                    # Extract data for all poses
-                    for line in lines:
-                        if line.startswith("REMARK VINA RESULT:"):
-                            # Parse out the binding affinity and RMSD
-                            parts = line.split()
-                            binding_affinity = float(parts[3])  # The fourth item on this line is the affinity
-                            rmsd_lb = float(parts[4])  # RMSD lower bound
-                            rmsd_ub = float(parts[5])  # RMSD upper bound
-                            # Store in the list with the 'file_name' key
-                            docking_data.append({
-                                'file_name': os.path.basename(file_name),  # Use basename to get the file name only
-                                'binding_affinity': binding_affinity,
-                                'rmsd_lb': rmsd_lb,
-                                'rmsd_ub': rmsd_ub
-                           })
+        # Coletar dados de todos os arquivos docked
+        for file_name in Path(job_results_dir).glob('*_docked.pdbqt'):
+            with open(file_name, 'r') as file:
+                for line in file:
+                    if line.startswith("REMARK VINA RESULT:"):
+                        parts = line.split()
+                        docking_data.append({
+                            'file_name': os.path.basename(file_name),
+                            'binding_affinity': float(parts[3]),
+                            'rmsd_lb': float(parts[4]),
+                            'rmsd_ub': float(parts[5])
+                        })
 
+        if docking_data:
+            df = pd.DataFrame(docking_data)
+            df_second_poses = df.groupby('file_name').nth(1).reset_index()
+            df_second_poses['final_rmsd'] = df_second_poses['rmsd_ub'] - df_second_poses['rmsd_lb']
+            df_best_poses = df_second_poses
 
-            if docking_data:
-                df = pd.DataFrame(docking_data)
-                df_second_poses = df.groupby('file_name').nth(1).reset_index()
-                df_second_poses['final_rmsd'] = df_second_poses['rmsd_ub'] - df_second_poses['rmsd_lb']
-                df_best_poses = df_second_poses
+            csv_file_path = os.path.join(job_results_dir, 'docking_results.csv')
+            df_best_poses.to_csv(csv_file_path, index=False)
+            print(df_best_poses)
+        else:
+            print("No docking data to process.")
 
-                csv_file_path = os.path.join(job_results_dir, 'docking_results.csv')
-                df_best_poses.to_csv(csv_file_path, index=False)
-                print(df_best_poses)
-            else:
-                print("No docking data to process.")
-
-            return jsonify({'message': f'Docking completed for job {job_id}'})
+        # ✅ Agora o return está fora do loop
+        return jsonify({'message': f'Docking completed for job {job_id}'})
     except Exception as e:
         print(f"Erro no backend: {str(e)}")
         return jsonify({'error': str(e)}), 500
@@ -1017,6 +1009,8 @@ if __name__ == "__main__":
     if not os.path.exists(app.config['DOCKING_RESULTS_DIR']):
         os.makedirs(app.config['DOCKING_RESULTS_DIR'])
     app.run(port=5000, use_reloader=False)
+
+
 
 
 
