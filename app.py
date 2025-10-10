@@ -812,31 +812,46 @@ def upload_files():
         convert_sdf_to_pdbqt(sdf_path=ligand_zip_path, output_directory=output_directory_path)
         protein_pdbqt_path = protein_file_path.replace('.pdb', '.pdbqt')
         convert_protein(protein_file_path, protein_pdbqt_path)
-        run_docking(protein_pdbqt_path, output_directory_path, job_results_dir)
 
         return jsonify({'job_id': job_id, 'message': 'Files uploaded, conversion started, and docking initiated!'})
     else:
         return jsonify({'error': 'Invalid file type or missing files.'}), 400
 
-def run_docking(protein_pdbqt, ligand_directory_path, results_directory_path):
-    print("Starting the docking process...")  # Debug print
-    for ligand_file in Path(ligand_directory_path).glob('*.pdbqt'):
-        ligand_pdbqt = str(ligand_file)
-        result_file_path = os.path.join(results_directory_path, ligand_file.stem + '_docked.pdbqt')
-        # Extract docking parameters from the form
-        center_x = request.form.get('center_x', type=float)
-        center_y = request.form.get('center_y', type=float)
-        center_z = request.form.get('center_z', type=float)
-        size_x = request.form.get('size_x', type=float)
-        size_y = request.form.get('size_y', type=float)
-        size_z = request.form.get('size_z', type=float)
-        exhaustiveness = request.form.get('exhaustiveness', type=int)
-        num_modes = request.form.get('num_modes', type=int)
-        energy_range = request.form.get('energy_range', type=int)
+@app.route('/start_docking', methods=['POST'])
+def start_docking():
+    try:
+        data = request.get_json()
+        job_id = data.get('job_id')
 
-        # Configuration text for docking
-        # Use these parameters in the docking configuration
-        config_text = f"""receptor = {protein_pdbqt}
+        # Parâmetros de docking
+        center_x = data.get('center_x')
+        center_y = data.get('center_y')
+        center_z = data.get('center_z')
+        size_x = data.get('size_x')
+        size_y = data.get('size_y')
+        size_z = data.get('size_z')
+        exhaustiveness = data.get('exhaustiveness')
+        num_modes = data.get('num_modes')
+        energy_range = data.get('energy_range')
+
+        # Caminhos
+        job_workspace = os.path.join(app.config['UPLOAD_FOLDER'], job_id)
+        job_results_dir = os.path.join(app.config['DOCKING_RESULTS_DIR'], job_id)
+        output_directory_path = os.path.join(job_workspace, 'refined_ligands')
+        protein_file_path = next(Path(job_workspace).glob('*.pdb'))
+        protein_pdbqt_path = protein_file_path.with_suffix('.pdbqt')
+
+        # Converter proteína
+        convert_protein(str(protein_file_path), str(protein_pdbqt_path))
+
+        print("Starting the docking process...")
+        docking_data = []
+
+        for ligand_file in Path(output_directory_path).glob('*.pdbqt'):
+            ligand_pdbqt = str(ligand_file)
+            result_file_path = os.path.join(job_results_dir, ligand_file.stem + '_docked.pdbqt')
+
+            config_text = f"""receptor = {protein_pdbqt_path}
 ligand = {ligand_pdbqt}
 
 center_x = {center_x}
@@ -850,59 +865,63 @@ out = {result_file_path}
 exhaustiveness = {exhaustiveness}
 num_modes = {num_modes}
 energy_range = {energy_range}
-    """
-        # Write configuration to a file
-        config_file_path = os.path.join(results_directory_path, ligand_file.stem + '_config.txt')
-        with open(config_file_path, 'w') as config_file:
-            config_file.write(config_text)
+"""
 
-        # Run Vina with output capture
-        vina_command = ['vina', '--config', config_file_path]
-        try:
-            result = subprocess.run(vina_command, capture_output=True, text=True)
-            if result.returncode != 0:  # Check if the command was not successful
-                print(f"Error in docking: {result.stderr}")  # Log any errors
-            else:
-                print(f"Docking completed for {ligand_file.stem}. Output:\n{result.stdout}")  # Log the success output
-        except Exception as e:
-            print(f"An exception occurred: {e}")  # Log any exceptions
-        finally:
-            # Clean up the config file after docking
-            os.remove(config_file_path)
-        # Initialize an empty list to collect docking data
-        docking_data = []
-        for file_name in Path(results_directory_path).glob('*_docked.pdbqt'):
-            with open(file_name, 'r') as file:
-                lines = file.readlines()
-                # Extract data for all poses
-                for line in lines:
-                    if line.startswith("REMARK VINA RESULT:"):
-                        # Parse out the binding affinity and RMSD
-                        parts = line.split()
-                        binding_affinity = float(parts[3])  # The fourth item on this line is the affinity
-                        rmsd_lb = float(parts[4])  # RMSD lower bound
-                        rmsd_ub = float(parts[5])  # RMSD upper bound
-                        # Store in the list with the 'file_name' key
-                        docking_data.append({
-                            'file_name': os.path.basename(file_name),  # Use basename to get the file name only
-                            'binding_affinity': binding_affinity,
-                            'rmsd_lb': rmsd_lb,
-                            'rmsd_ub': rmsd_ub
-                        })
+            config_file_path = os.path.join(job_results_dir, ligand_file.stem + '_config.txt')
+            with open(config_file_path, 'w') as config_file:
+                config_file.write(config_text)
 
-        # Check if docking data was collected
+            vina_command = ['vina', '--config', config_file_path]
+            try:
+                result = subprocess.run(vina_command, capture_output=True, text=True)
+                if result.returncode != 0:
+                    print(f"Error in docking: {result.stderr}")
+                else:
+                    print(f"Docking completed for {ligand_file.stem}. Output:\n{result.stdout}")
+            except Exception as e:
+                print(f"An exception occurred: {e}")
+            finally:
+                os.remove(config_file_path)
+
+            # Initialize an empty list to collect docking data
+            docking_data = []
+            for file_name in Path(job_results_dir).glob('*_docked.pdbqt'):
+                with open(file_name, 'r') as file:
+                    lines = file.readlines()
+                    # Extract data for all poses
+                    for line in lines:
+                        if line.startswith("REMARK VINA RESULT:"):
+                            # Parse out the binding affinity and RMSD
+                            parts = line.split()
+                            binding_affinity = float(parts[3])  # The fourth item on this line is the affinity
+                            rmsd_lb = float(parts[4])  # RMSD lower bound
+                            rmsd_ub = float(parts[5])  # RMSD upper bound
+                            # Store in the list with the 'file_name' key
+                            docking_data.append({
+                                'file_name': os.path.basename(file_name),  # Use basename to get the file name only
+                                'binding_affinity': binding_affinity,
+                                'rmsd_lb': rmsd_lb,
+                                'rmsd_ub': rmsd_ub
+                           })
+
+
         if docking_data:
-            # Convert list to DataFrame
             df = pd.DataFrame(docking_data)
             df_second_poses = df.groupby('file_name').nth(1).reset_index()
             df_second_poses['final_rmsd'] = df_second_poses['rmsd_ub'] - df_second_poses['rmsd_lb']
-
             df_best_poses = df_second_poses
-            print(df_best_poses)
-            csv_file_path = os.path.join(results_directory_path, 'docking_results.csv')
+
+            csv_file_path = os.path.join(job_results_dir, 'docking_results.csv')
             df_best_poses.to_csv(csv_file_path, index=False)
+            print(df_best_poses)
         else:
             print("No docking data to process.")
+
+        return jsonify({'message': f'Docking completed for job {job_id}'})
+    except Exception as e:
+        print(f"Erro no backend: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
 
 def validate_docking_output(docked_file_path):
     if os.path.exists(docked_file_path) and os.path.getsize(docked_file_path) > 0:
@@ -998,4 +1017,7 @@ if __name__ == "__main__":
     if not os.path.exists(app.config['DOCKING_RESULTS_DIR']):
         os.makedirs(app.config['DOCKING_RESULTS_DIR'])
     app.run(port=5000, use_reloader=False)
+
+
+
 
