@@ -841,9 +841,6 @@ def start_docking():
         protein_file_path = next(Path(job_workspace).glob('*.pdb'))
         protein_pdbqt_path = protein_file_path.with_suffix('.pdbqt')
 
-        # Converter proteína
-        convert_protein(str(protein_file_path), str(protein_pdbqt_path))
-
         print("Starting the docking process...")
         docking_data = []
 
@@ -1009,6 +1006,7 @@ if __name__ == "__main__":
     if not os.path.exists(app.config['DOCKING_RESULTS_DIR']):
         os.makedirs(app.config['DOCKING_RESULTS_DIR'])
     app.run(port=5000, use_reloader=False)
+
 
 
 
